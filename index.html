@@ -395,23 +395,24 @@
     </div>
     <div class="content" id="ns-form-view">
       <div class="field">
+        <label class="field-label">Add plan (optional)</label>
+        <div class="picker-field" id="ns-plan-field">
+          <span id="ns-plan-display-text">None — freestyle</span>
+          <span class="chev">▾</span>
+        </div>
+      </div>
+      <div class="field">
         <label class="field-label">What is the session?</label>
         <div class="seg-control" id="ns-category">
           <div class="seg-btn" data-cat="pullups">Pull-ups</div>
           <div class="seg-btn" data-cat="pushups">Push-ups</div>
           <div class="seg-btn" data-cat="other">Other</div>
         </div>
+        <div class="hint" id="ns-category-auto-hint" style="display:none;">Locked to your plan</div>
       </div>
       <div class="field" id="ns-other-field" style="display:none;">
         <label class="field-label">Name it</label>
         <input type="text" class="text-input" id="ns-other-label" placeholder="e.g. Dips">
-      </div>
-      <div class="field">
-        <label class="field-label">Add plan (optional)</label>
-        <div class="picker-field" id="ns-plan-field">
-          <span id="ns-plan-display-text">None — freestyle</span>
-          <span class="chev">▾</span>
-        </div>
       </div>
       <div class="field">
         <div class="toggle">
@@ -803,8 +804,6 @@ document.querySelectorAll('#ns-category .seg-btn').forEach(b=>{
   b.addEventListener('click', ()=>{
     nsConfig.category = b.getAttribute('data-cat');
     updateCategoryButtons();
-    nsConfig.planId = ''; // plans are category-specific
-    updatePlanDisplay();
   });
 });
 document.querySelectorAll('#ns-buttons .seg-btn').forEach(b=>{
@@ -839,7 +838,7 @@ document.getElementById('ns-gong-plus').addEventListener('click', ()=>{
   updateGongVal();
 });
 
-/* -- plan picker: auto-sets button tier from the plan's highest target -- */
+/* -- plan picker: auto-sets category, button tier & gong from the plan -- */
 function autoButtonCountForPlan(plan){
   if(!plan || !plan.segments.length) return null;
   const max = Math.max(...plan.segments.map(s=>s.reps));
@@ -847,9 +846,12 @@ function autoButtonCountForPlan(plan){
   if(max <= 15) return 15;
   return 20;
 }
+function catLabelFor(cat){ return cat === 'other' ? 'Other' : (cat === 'pullups' ? 'Pull-ups' : 'Push-ups'); }
 function updatePlanDisplay(){
   const field = document.getElementById('ns-plan-field');
   const text = document.getElementById('ns-plan-display-text');
+  const categoryHint = document.getElementById('ns-category-auto-hint');
+  const categoryControl = document.getElementById('ns-category');
   const buttonsHint = document.getElementById('ns-buttons-auto-hint');
   const buttonsControl = document.getElementById('ns-buttons');
   const gongHint = document.getElementById('ns-gong-auto-hint');
@@ -858,6 +860,8 @@ function updatePlanDisplay(){
     const p = data.plans.find(pl=>pl.id === nsConfig.planId);
     text.textContent = p ? p.name : 'None — freestyle';
     field.classList.toggle('has-value', !!p);
+    categoryHint.style.display = p ? '' : 'none';
+    categoryControl.classList.toggle('locked', !!p);
     buttonsHint.style.display = p ? '' : 'none';
     buttonsControl.classList.toggle('locked', !!p);
     gongHint.style.display = p ? '' : 'none';
@@ -865,6 +869,8 @@ function updatePlanDisplay(){
   } else {
     text.textContent = 'None — freestyle';
     field.classList.remove('has-value');
+    categoryHint.style.display = 'none';
+    categoryControl.classList.remove('locked');
     buttonsHint.style.display = 'none';
     buttonsControl.classList.remove('locked');
     gongHint.style.display = 'none';
@@ -873,18 +879,22 @@ function updatePlanDisplay(){
 }
 document.getElementById('ns-plan-field').addEventListener('click', async ()=>{
   const options = [{value:'', label:'None — freestyle'}].concat(
-    data.plans.filter(p=>p.category === nsConfig.category).map(p=>({value:p.id, label:p.name}))
+    data.plans.map(p=>({value:p.id, label: p.name + ' (' + catLabelFor(p.category) + ')'}))
   );
   const result = await showPicker('Add plan', options, nsConfig.planId);
   if(result === undefined) return; // cancelled
   nsConfig.planId = result;
-  updatePlanDisplay();
   if(result){
     const plan = data.plans.find(pl=>pl.id === result);
-    const autoCount = autoButtonCountForPlan(plan);
-    if(autoCount){ nsConfig.buttonCount = autoCount; updateButtonCountButtons(); }
-    if(plan && plan.intervalSec){ nsConfig.gong = plan.intervalSec; updateGongVal(); }
+    if(plan){
+      nsConfig.category = plan.category;
+      updateCategoryButtons();
+      const autoCount = autoButtonCountForPlan(plan);
+      if(autoCount){ nsConfig.buttonCount = autoCount; updateButtonCountButtons(); }
+      if(plan.intervalSec){ nsConfig.gong = plan.intervalSec; updateGongVal(); }
+    }
   }
+  updatePlanDisplay();
 });
 
 document.getElementById('ns-done-btn').addEventListener('click', ()=>{
