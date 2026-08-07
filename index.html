@@ -23,7 +23,6 @@
     --iron-dim:#7A2E19;
     --brass:#C79A4B;
     --brass-glow:rgba(199,154,75,0.35);
-    --success:#7FA36A;
     --line:#37312A;
     --danger:#C7401F;
     --radius:14px;
@@ -259,8 +258,8 @@
   .complete-time{font-family:'Oswald',sans-serif; font-weight:700; font-size:min(20vw,88px); color:var(--iron); line-height:1;}
   .complete-time-label{color:var(--chalk-faint); font-size:12px; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:22px;}
   .pr-badge{
-    display:inline-block; background:rgba(127,163,106,0.15); color:var(--success);
-    border:1px solid var(--success); border-radius:20px; padding:8px 18px;
+    display:inline-block; background:rgba(199,154,75,0.16); color:var(--brass);
+    border:1px solid var(--brass); border-radius:20px; padding:8px 18px;
     font-family:'Oswald',sans-serif; font-weight:600; font-size:13px;
     text-transform:uppercase; letter-spacing:0.06em; margin-bottom:24px;
   }
@@ -290,18 +289,18 @@
 
   /* ---------- plan builder ---------- */
   .seg-row{
-    display:flex; align-items:center; gap:10px; background:var(--surface);
+    display:flex; align-items:center; justify-content:space-between; background:var(--surface);
     border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px;
   }
-  .seg-row .seg-range{font-size:12px; color:var(--chalk-faint); width:70px; flex-shrink:0;}
-  .seg-row .cum{font-size:20px; font-weight:700; color:var(--brass); font-family:'Oswald',sans-serif; width:50px; text-align:right; flex-shrink:0;}
+  .seg-row .seg-range{font-size:12px; color:var(--chalk-faint); white-space:nowrap; flex-shrink:0;}
+  .seg-row .cum{font-size:20px; font-weight:700; color:var(--brass); font-family:'Oswald',sans-serif; white-space:nowrap; text-align:right; flex-shrink:0;}
   .add-seg-btn{
     width:100%; padding:12px; border-radius:10px; border:1px dashed var(--line);
     background:transparent; color:var(--chalk-dim); font-size:13px; cursor:pointer; margin:6px 0 22px;
   }
   .plan-total{font-size:12px; color:var(--chalk-faint); text-align:right; margin:-14px 0 20px;}
   .plan-total.warn{color:var(--iron);}
-  .plan-total.ok{color:var(--success);}
+  .plan-total.ok{color:var(--brass);}
 
   /* ---------- fixes: tabular numerals so digits don't shift ---------- */
   .counter-big, .stopwatch, .complete-time, .countdown-num{
@@ -330,11 +329,10 @@
     flex:1; text-align:center; font-family:'Oswald',sans-serif; font-weight:600; font-size:18px;
   }
   .seg-row{ padding:9px 10px; }
-  .seg-row .seg-range{ width:56px; }
-  .seg-row .stepper{ flex:1; gap:8px; }
+  .seg-row .stepper{ flex:0 0 auto; gap:8px; }
   .seg-row .stepper-btn{ width:32px; height:32px; font-size:16px; border-radius:8px; }
   .seg-row .stepper-value{ font-size:16px; min-width:26px; flex:none; }
-  .seg-row .cum{ width:44px; font-size:20px; }
+  .seg-row .cum{ min-width:32px; font-size:20px; }
 
   /* ---------- confirm/alert modal ---------- */
   .modal-overlay{
@@ -409,6 +407,13 @@
         <input type="text" class="text-input" id="ns-other-label" placeholder="e.g. Dips">
       </div>
       <div class="field">
+        <label class="field-label">Add plan (optional)</label>
+        <div class="picker-field" id="ns-plan-field">
+          <span id="ns-plan-display-text">None — freestyle</span>
+          <span class="chev">▾</span>
+        </div>
+      </div>
+      <div class="field">
         <div class="toggle">
           <div>
             <div style="font-family:'Oswald',sans-serif; font-weight:600; text-transform:uppercase; font-size:14px;">Weighted</div>
@@ -423,13 +428,6 @@
           <div class="stepper-btn" id="ns-weight-minus">−</div>
           <div class="stepper-value" id="ns-weight-val">10 kg</div>
           <div class="stepper-btn" id="ns-weight-plus">+</div>
-        </div>
-      </div>
-      <div class="field">
-        <label class="field-label">Add plan (optional)</label>
-        <div class="picker-field" id="ns-plan-field">
-          <span id="ns-plan-display-text">None — freestyle</span>
-          <span class="chev">▾</span>
         </div>
       </div>
       <div class="field" id="ns-gong-field">
@@ -1107,8 +1105,19 @@ function renderHighscores(){
     const s = groups[k];
     const item = document.createElement('div');
     item.className = 'list-item';
-    item.innerHTML = '<div class="li-main"><div class="li-cat">'+fullLabel(s)+'</div><div class="li-sub">'+fmtDateOnly(s.date)+'</div></div><div class="li-time">'+fmtTime2(s.totalTime)+'</div>';
+    item.innerHTML = '<div class="li-main"><div class="li-cat">'+fullLabel(s)+'</div><div class="li-sub">'+fmtDateOnly(s.date)+'</div></div><div class="li-time">'+fmtTime2(s.totalTime)+'</div><div class="li-del" data-id="'+s.id+'">✕</div>';
     el.appendChild(item);
+  });
+  el.querySelectorAll('.li-del').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      const ok = await showConfirm('Delete this highscore? This removes the logged session behind it (it will also disappear from your diary). The next-best time for this category takes its place.', true);
+      if(ok){
+        data.sessions = data.sessions.filter(s=>s.id !== btn.getAttribute('data-id'));
+        saveData();
+        renderHighscores();
+      }
+    });
   });
 }
 
