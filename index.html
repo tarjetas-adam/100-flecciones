@@ -231,6 +231,12 @@
   .gong-flag{
     text-align:center; font-size:11px; color:var(--chalk-faint);
     letter-spacing:0.12em; text-transform:uppercase; margin-top:-10px; margin-bottom:14px;
+    height:14px; line-height:14px; opacity:0; transition:opacity 0.4s ease;
+  }
+  .gong-flag.show{ opacity:1; }
+  .plan-progress{
+    text-align:center; font-family:'Oswald',sans-serif; font-weight:600; font-size:16px;
+    color:var(--brass); letter-spacing:0.02em; margin:-8px 0 16px; height:20px;
   }
   .btn-grid{
     display:grid; grid-template-columns:repeat(5,1fr); gap:9px;
@@ -483,9 +489,9 @@
       <div class="counter-of">of 100</div>
     </div>
     <div class="stopwatch" id="active-stopwatch">0:00.0</div>
-    <div class="gong-flag" id="active-gong-flag"></div>
+    <div class="gong-flag" id="active-gong-flag">♪</div>
+    <div class="plan-progress" id="active-plan-progress" style="display:none;"></div>
     <div id="active-btn-grid"></div>
-    <div class="abandon-hint">Back arrow ends the session without saving it</div>
   </div>
 
   <!-- COMPLETE -->
@@ -970,9 +976,10 @@ function beginActiveSession(){
   document.getElementById('active-title').textContent = fullLabel(session.cfg);
   document.getElementById('active-counter').textContent = '0';
   document.getElementById('active-stopwatch').textContent = '0:00.0';
-  document.getElementById('active-gong-flag').textContent = '';
+  document.getElementById('active-gong-flag').classList.remove('show');
   renderRepGrid();
   updateLitButton();
+  updatePlanProgress(0);
   showScreen('screen-active');
   session.tickHandle = setInterval(activeTick, 100);
 }
@@ -1013,16 +1020,30 @@ function updateLitButton(){
   });
 }
 
+function updatePlanProgress(elapsed){
+  const el = document.getElementById('active-plan-progress');
+  if(!session.plan){ el.style.display = 'none'; return; }
+  const step = session.plan.intervalSec || 60;
+  const segs = session.plan.segments;
+  const idx = Math.floor(elapsed / step);
+  if(idx >= segs.length){ el.style.display = 'none'; return; }
+  let cum = 0;
+  for(let i=0; i<=idx; i++){ cum += segs[i].reps; }
+  el.style.display = '';
+  el.textContent = fmtRange(idx*step, (idx+1)*step) + '  ·  ' + cum;
+}
+
 function activeTick(){
   const elapsed = (Date.now() - session.startTime) / 1000;
   document.getElementById('active-stopwatch').textContent = fmtTime1(elapsed);
   if(elapsed >= session.nextGongAt){
     playGong();
     const flag = document.getElementById('active-gong-flag');
-    flag.textContent = '♪';
-    setTimeout(()=>{ if(flag) flag.textContent = ''; }, 1500);
+    flag.classList.add('show');
+    setTimeout(()=>{ if(flag) flag.classList.remove('show'); }, 1500);
     session.nextGongAt += session.cfg.gong;
   }
+  updatePlanProgress(elapsed);
 }
 
 function onRepPress(v){
