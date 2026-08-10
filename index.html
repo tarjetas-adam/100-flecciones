@@ -412,6 +412,7 @@
         <div class="seg-control" id="ns-category">
           <div class="seg-btn" data-cat="pullups">Pull-ups</div>
           <div class="seg-btn" data-cat="pushups">Push-ups</div>
+          <div class="seg-btn" data-cat="burpees">Burpees</div>
           <div class="seg-btn" data-cat="other">Other</div>
         </div>
         <div class="hint" id="ns-category-auto-hint" style="display:none;">Locked to your plan</div>
@@ -532,6 +533,7 @@
         <div class="seg-control" id="pe-category">
           <div class="seg-btn" data-cat="pullups">Pull-ups</div>
           <div class="seg-btn" data-cat="pushups">Push-ups</div>
+          <div class="seg-btn" data-cat="burpees">Burpees</div>
           <div class="seg-btn" data-cat="other">Other</div>
         </div>
       </div>
@@ -602,6 +604,7 @@
 /* ============ DATA ============ */
 let data = { plans: [], sessions: [] };
 const STORAGE_KEY = 'flecciones-data';
+const CATEGORY_LABELS = { pullups:'Pull-ups', pushups:'Push-ups', burpees:'Burpees', other:'Other' };
 
 async function loadData(){
   try{
@@ -757,7 +760,7 @@ function fmtTime2(sec){
 }
 function catLabel(cfg){
   if(cfg.category === 'other') return (cfg.otherLabel || 'Other');
-  return cfg.category === 'pullups' ? 'Pull-ups' : 'Push-ups';
+  return CATEGORY_LABELS[cfg.category] || cfg.category;
 }
 function fullLabel(cfg){
   let l = catLabel(cfg);
@@ -852,7 +855,7 @@ function autoButtonCountForPlan(plan){
   if(max <= 15) return 15;
   return 20;
 }
-function catLabelFor(cat){ return cat === 'other' ? 'Other' : (cat === 'pullups' ? 'Pull-ups' : 'Push-ups'); }
+function catLabelFor(cat){ return CATEGORY_LABELS[cat] || cat; }
 function updatePlanDisplay(){
   const field = document.getElementById('ns-plan-field');
   const text = document.getElementById('ns-plan-display-text');
@@ -1192,7 +1195,7 @@ function renderPlanList(){
     const total = p.segments.reduce((a,s)=>a+s.reps,0);
     const item = document.createElement('div');
     item.className = 'list-item';
-    const catName = p.category === 'other' ? 'Other' : (p.category === 'pullups' ? 'Pull-ups' : 'Push-ups');
+    const catName = CATEGORY_LABELS[p.category] || p.category;
     const step = p.intervalSec || 60;
     const stepLabel = step === 60 ? '1 min steps' : step + ' sec steps';
     item.innerHTML = '<div class="li-main" data-id="'+p.id+'"><div class="li-cat">'+p.name+'</div><div class="li-sub">'+catName+' · '+stepLabel+' · '+total+' reps planned</div></div><div class="li-del" data-id="'+p.id+'">✕</div>';
@@ -1304,8 +1307,13 @@ document.querySelectorAll('#pe-interval .seg-btn').forEach(b=>{
   });
 });
 function fmtRange(startSec, endSec){
-  function f(s){ return s % 60 === 0 ? (s/60) + 'm' : s + 's'; }
-  return f(startSec) + '–' + f(endSec);
+  function f(s){
+    if(s < 60) return s + ' sec';
+    const m = Math.floor(s/60);
+    const rem = s % 60;
+    return m + ':' + String(rem).padStart(2,'0');
+  }
+  return f(startSec) + ' - ' + f(endSec);
 }
 function renderPeSegments(){
   const wrap = document.getElementById('pe-segments');
