@@ -115,6 +115,9 @@
   .seg-control{
     display:flex; gap:8px; flex-wrap:wrap;
   }
+  #ns-category, #pe-category{
+    display:grid; grid-template-columns:1fr 1fr;
+  }
   .seg-btn{
     flex:1; min-width:80px;
     padding:13px 10px; text-align:center;
@@ -211,32 +214,32 @@
   .flash{animation:pulseFlash 0.4s ease;}
 
   /* ---------- active session ---------- */
-  .active-top{padding:14px 16px 6px;}
+  .active-top{padding:14px 16px 8px;}
   .active-title{
     text-align:center; font-family:'Oswald',sans-serif; font-size:16px;
     text-transform:uppercase; letter-spacing:0.05em; color:var(--chalk-dim);
-    margin-top:2px;
+    margin-top:6px;
   }
-  .counter-block{text-align:center; padding:10px 0 4px;}
+  .counter-block{text-align:center; padding:16px 0 6px;}
   .counter-big{
-    font-family:'Oswald',sans-serif; font-weight:700; font-size:min(30vw,150px);
+    font-family:'Oswald',sans-serif; font-weight:600; font-size:min(30vw,150px);
     line-height:0.95; color:var(--chalk); letter-spacing:-0.01em;
   }
   .counter-of{color:var(--chalk-faint); font-size:15px; margin-top:8px;}
   .stopwatch{
-    text-align:center; font-family:'Oswald',sans-serif; font-weight:500;
-    font-size:clamp(26px,8vw,36px); color:var(--brass); margin:6px 0 18px;
+    text-align:center; font-family:'Oswald',sans-serif; font-weight:600;
+    font-size:clamp(26px,8vw,36px); color:var(--brass); margin:10px 0 14px;
     letter-spacing:0.02em;
   }
   .gong-flag{
     text-align:center; font-size:11px; color:var(--chalk-faint);
-    letter-spacing:0.12em; text-transform:uppercase; margin-top:-10px; margin-bottom:14px;
+    letter-spacing:0.12em; text-transform:uppercase; margin-top:-6px; margin-bottom:10px;
     height:14px; line-height:14px; opacity:0; transition:opacity 0.4s ease;
   }
   .gong-flag.show{ opacity:1; }
   .plan-progress{
     text-align:center; font-family:'Oswald',sans-serif; font-weight:600; font-size:16px;
-    color:var(--brass); letter-spacing:0.02em; margin:-8px 0 16px; height:20px;
+    color:var(--brass); letter-spacing:0.02em; margin:-4px 0 14px; height:20px;
   }
   .btn-grid{
     display:grid; grid-template-columns:repeat(5,1fr); gap:9px;
@@ -254,6 +257,18 @@
     box-shadow:0 0 0 3px var(--brass-glow) inset;
     color:var(--brass);
   }
+  .rep-btn.pressed-pulse{ animation:pressPulse 0.55s ease; }
+  @keyframes pressPulse{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(0.85); border-color:var(--brass); background:rgba(199,154,75,0.28); }
+    100%{ transform:scale(1); }
+  }
+  .rep-btn.lit-enter{ animation:litEnter 0.75s ease; }
+  @keyframes litEnter{
+    0%{ transform:scale(1); box-shadow:none; border-color:var(--line); background:var(--surface); color:var(--chalk); }
+    50%{ transform:scale(1.12); box-shadow:0 0 0 6px var(--brass-glow) inset; border-color:var(--brass); background:rgba(199,154,75,0.14); color:var(--brass); }
+    100%{ transform:scale(1); box-shadow:0 0 0 3px var(--brass-glow) inset; border-color:var(--brass); background:rgba(199,154,75,0.14); color:var(--brass); }
+  }
   .row-gap{height:10px;}
   .abandon-hint{text-align:center; font-size:11px; color:var(--chalk-faint); padding:0 30px 10px;}
 
@@ -261,7 +276,7 @@
   .complete-screen{align-items:center; justify-content:center; text-align:center; padding:30px;}
   .complete-eyebrow{color:var(--chalk-faint); font-size:12px; letter-spacing:0.2em; text-transform:uppercase;}
   .complete-title{font-family:'Oswald',sans-serif; font-weight:700; font-size:26px; text-transform:uppercase; margin:8px 0 20px;}
-  .complete-time{font-family:'Oswald',sans-serif; font-weight:700; font-size:min(20vw,88px); color:var(--iron); line-height:1;}
+  .complete-time{font-family:'Oswald',sans-serif; font-weight:600; font-size:min(20vw,88px); color:var(--iron); line-height:1;}
   .complete-time-label{color:var(--chalk-faint); font-size:12px; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:22px;}
   .pr-badge{
     display:inline-block; background:rgba(199,154,75,0.16); color:var(--brass);
@@ -308,10 +323,14 @@
   .plan-total.warn{color:var(--iron);}
   .plan-total.ok{color:var(--brass);}
 
-  /* ---------- fixes: tabular numerals so digits don't shift ---------- */
+  /* ---------- fixes: fixed-width digit slots so numbers never shift, ---------- */
+  /* regardless of whether the font itself has true tabular figures    */
   .counter-big, .stopwatch, .complete-time, .countdown-num{
-    font-variant-numeric:tabular-nums; font-feature-settings:"tnum";
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum";
+    display:block; text-align:center;
   }
+  .tnum-digit{ display:inline-block; width:var(--digit-w, 1ch); text-align:center; letter-spacing:normal; }
 
   /* ---------- fixes: remove native number spinners ---------- */
   input[type=number]::-webkit-inner-spin-button,
@@ -403,7 +422,7 @@
       <div class="field">
         <label class="field-label">Add plan (optional)</label>
         <div class="picker-field" id="ns-plan-field">
-          <span id="ns-plan-display-text">None — freestyle</span>
+          <span id="ns-plan-display-text">None</span>
           <span class="chev">▾</span>
         </div>
       </div>
@@ -413,13 +432,9 @@
           <div class="seg-btn" data-cat="pullups">Pull-ups</div>
           <div class="seg-btn" data-cat="pushups">Push-ups</div>
           <div class="seg-btn" data-cat="burpees">Burpees</div>
-          <div class="seg-btn" data-cat="other">Other</div>
+          <div class="seg-btn" data-cat="squats">Squats</div>
         </div>
         <div class="hint" id="ns-category-auto-hint" style="display:none;">Locked to your plan</div>
-      </div>
-      <div class="field" id="ns-other-field" style="display:none;">
-        <label class="field-label">Name it</label>
-        <input type="text" class="text-input" id="ns-other-label" placeholder="e.g. Dips">
       </div>
       <div class="field">
         <div class="toggle">
@@ -534,7 +549,7 @@
           <div class="seg-btn" data-cat="pullups">Pull-ups</div>
           <div class="seg-btn" data-cat="pushups">Push-ups</div>
           <div class="seg-btn" data-cat="burpees">Burpees</div>
-          <div class="seg-btn" data-cat="other">Other</div>
+          <div class="seg-btn" data-cat="squats">Squats</div>
         </div>
       </div>
       <div class="field">
@@ -604,7 +619,7 @@
 /* ============ DATA ============ */
 let data = { plans: [], sessions: [] };
 const STORAGE_KEY = 'flecciones-data';
-const CATEGORY_LABELS = { pullups:'Pull-ups', pushups:'Push-ups', burpees:'Burpees', other:'Other' };
+const CATEGORY_LABELS = { pullups:'Pull-ups', pushups:'Push-ups', burpees:'Burpees', squats:'Squats' };
 
 async function loadData(){
   try{
@@ -758,8 +773,34 @@ function fmtTime2(sec){
   const s = (sec - m*60).toFixed(2);
   return m + ':' + s.padStart(5,'0');
 }
+/* Wraps each digit in a fixed-width slot so the whole string can't wobble
+   horizontally as digits with different natural widths swap in and out —
+   the slot width is measured from the actual rendered font (via canvas),
+   so it matches the true digit width exactly instead of an estimate. */
+const _digitWidthCache = {};
+function _measureDigitWidth(el){
+  const cs = getComputedStyle(el);
+  const fontKey = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+  if(_digitWidthCache[fontKey] !== undefined) return _digitWidthCache[fontKey];
+  if(!_measureDigitWidth._ctx){ _measureDigitWidth._ctx = document.createElement('canvas').getContext('2d'); }
+  const ctx = _measureDigitWidth._ctx;
+  ctx.font = fontKey;
+  let max = 0;
+  for(let d=0; d<=9; d++){
+    const w = ctx.measureText(String(d)).width;
+    if(w > max) max = w;
+  }
+  _digitWidthCache[fontKey] = max;
+  return max;
+}
+function setTabularText(el, text){
+  const w = _measureDigitWidth(el);
+  if(w) el.style.setProperty('--digit-w', w + 'px');
+  el.innerHTML = text.split('').map(ch=>{
+    return /[0-9]/.test(ch) ? '<span class="tnum-digit">'+ch+'</span>' : ch;
+  }).join('');
+}
 function catLabel(cfg){
-  if(cfg.category === 'other') return (cfg.otherLabel || 'Other');
   return CATEGORY_LABELS[cfg.category] || cfg.category;
 }
 function fullLabel(cfg){
@@ -768,7 +809,7 @@ function fullLabel(cfg){
   return l;
 }
 function categoryKey(cfg){
-  const base = (cfg.category === 'other' ? (cfg.otherLabel||'other') : cfg.category).trim().toLowerCase();
+  const base = cfg.category;
   const w = cfg.weighted && cfg.weight ? ('+' + cfg.weight + 'kg') : 'bodyweight';
   return base + '__' + w;
 }
@@ -782,14 +823,12 @@ function fmtDateOnly(iso){
 }
 
 /* ============ NEW SESSION FORM ============ */
-let nsConfig = { category:'pullups', otherLabel:'', weighted:false, weight:10, gong:60, buttonCount:10, planId:'' };
+let nsConfig = { category:'pullups', weighted:false, weight:10, gong:60, buttonCount:10, planId:'' };
 
 function resetNewSessionForm(){
-  nsConfig = { category:'pullups', otherLabel:'', weighted:false, weight:10, gong:60, buttonCount:10, planId:'' };
+  nsConfig = { category:'pullups', weighted:false, weight:10, gong:60, buttonCount:10, planId:'' };
   document.getElementById('ns-form-view').style.display = '';
   document.getElementById('ns-ready-view').style.display = 'none';
-  document.getElementById('ns-other-label').value = '';
-  document.getElementById('ns-other-field').style.display = 'none';
   document.getElementById('ns-weight-field').style.display = 'none';
   document.getElementById('ns-weighted-switch').classList.remove('on');
   updateWeightVal();
@@ -802,7 +841,6 @@ function updateCategoryButtons(){
   document.querySelectorAll('#ns-category .seg-btn').forEach(b=>{
     b.classList.toggle('sel', b.getAttribute('data-cat') === nsConfig.category);
   });
-  document.getElementById('ns-other-field').style.display = nsConfig.category === 'other' ? '' : 'none';
 }
 function updateButtonCountButtons(){
   document.querySelectorAll('#ns-buttons .seg-btn').forEach(b=>{
@@ -867,7 +905,7 @@ function updatePlanDisplay(){
   const gongStepper = document.getElementById('ns-gong-stepper');
   if(nsConfig.planId){
     const p = data.plans.find(pl=>pl.id === nsConfig.planId);
-    text.textContent = p ? p.name : 'None — freestyle';
+    text.textContent = p ? p.name : 'None';
     field.classList.toggle('has-value', !!p);
     categoryHint.style.display = p ? '' : 'none';
     categoryControl.classList.toggle('locked', !!p);
@@ -876,7 +914,7 @@ function updatePlanDisplay(){
     gongHint.style.display = p ? '' : 'none';
     gongStepper.classList.toggle('locked', !!p);
   } else {
-    text.textContent = 'None — freestyle';
+    text.textContent = 'None';
     field.classList.remove('has-value');
     categoryHint.style.display = 'none';
     categoryControl.classList.remove('locked');
@@ -887,7 +925,7 @@ function updatePlanDisplay(){
   }
 }
 document.getElementById('ns-plan-field').addEventListener('click', async ()=>{
-  const options = [{value:'', label:'None — freestyle'}].concat(
+  const options = [{value:'', label:'None'}].concat(
     data.plans.map(p=>({value:p.id, label: p.name + ' (' + catLabelFor(p.category) + ')'}))
   );
   const result = await showPicker('Add plan', options, nsConfig.planId);
@@ -907,9 +945,6 @@ document.getElementById('ns-plan-field').addEventListener('click', async ()=>{
 });
 
 document.getElementById('ns-done-btn').addEventListener('click', ()=>{
-  nsConfig.otherLabel = document.getElementById('ns-other-label').value.trim();
-  if(nsConfig.category === 'other' && !nsConfig.otherLabel){ nsConfig.otherLabel = 'Other'; }
-
   document.getElementById('ready-title').textContent = fullLabel(nsConfig);
   if(nsConfig.weighted && nsConfig.weight){
     document.getElementById('ready-line-weight').style.display = '';
@@ -977,14 +1012,15 @@ function beginActiveSession(){
     tickHandle: null
   };
   document.getElementById('active-title').textContent = fullLabel(session.cfg);
-  document.getElementById('active-counter').textContent = '0';
-  document.getElementById('active-stopwatch').textContent = '0:00.0';
+  setTabularText(document.getElementById('active-counter'), '0');
+  setTabularText(document.getElementById('active-stopwatch'), '0:00.0');
   document.getElementById('active-gong-flag').classList.remove('show');
   renderRepGrid();
   updateLitButton();
   updatePlanProgress(0);
   showScreen('screen-active');
   session.tickHandle = setInterval(activeTick, 100);
+  requestAnimationFrame(()=> updateLitButton(true));
 }
 
 function renderRepGrid(){
@@ -1016,10 +1052,25 @@ function currentPlanTarget(){
   if(reps > session.cfg.buttonCount) return null;
   return reps;
 }
-function updateLitButton(){
+function updateLitButton(animate){
   const target = currentPlanTarget();
   document.querySelectorAll('.rep-btn').forEach(b=>{
-    b.classList.toggle('lit', target !== null && parseInt(b.getAttribute('data-val')) === target);
+    const isTarget = target !== null && parseInt(b.getAttribute('data-val')) === target;
+    if(isTarget){
+      b.classList.add('lit');
+      if(animate){
+        b.classList.remove('lit-enter');
+        void b.offsetWidth; // restart animation even if class was already applied
+        b.classList.add('lit-enter');
+        b.addEventListener('animationend', function handler(){
+          b.classList.remove('lit-enter');
+          b.removeEventListener('animationend', handler);
+        });
+      }
+    } else {
+      b.classList.remove('lit');
+      b.classList.remove('lit-enter');
+    }
   });
 }
 
@@ -1038,7 +1089,7 @@ function updatePlanProgress(elapsed){
 
 function activeTick(){
   const elapsed = (Date.now() - session.startTime) / 1000;
-  document.getElementById('active-stopwatch').textContent = fmtTime1(elapsed);
+  setTabularText(document.getElementById('active-stopwatch'), fmtTime1(elapsed));
   if(elapsed >= session.nextGongAt){
     playGong();
     const flag = document.getElementById('active-gong-flag');
@@ -1053,16 +1104,36 @@ function onRepPress(v){
   if(!session) return;
   const elapsed = (Date.now() - session.startTime) / 1000;
   const target = currentPlanTarget();
+  let correctPress = false;
   if(target !== null){
-    if(v === target){ session.planIndex++; }
+    if(v === target){ correctPress = true; session.planIndex++; }
     else { session.planDeviated = true; }
   }
   session.presses.push({val:v, at: Math.round(elapsed*10)/10});
   session.counter += v;
   vibrate(12);
-  document.getElementById('active-counter').textContent = Math.min(session.counter,100);
+  setTabularText(document.getElementById('active-counter'), String(Math.min(session.counter,100)));
+
+  // confirm the press: unhighlight immediately and give it a quick pulse
+  const pressedBtn = document.querySelector('.rep-btn[data-val="'+v+'"]');
+  if(pressedBtn){
+    pressedBtn.classList.remove('lit');
+    pressedBtn.classList.remove('lit-enter');
+    pressedBtn.classList.remove('pressed-pulse');
+    void pressedBtn.offsetWidth;
+    pressedBtn.classList.add('pressed-pulse');
+    pressedBtn.addEventListener('animationend', function handler(){
+      pressedBtn.classList.remove('pressed-pulse');
+      pressedBtn.removeEventListener('animationend', handler);
+    });
+  }
+
   if(session.counter >= 100){
     finishSession(elapsed);
+  } else if(correctPress){
+    // light the next target a beat later, with an entrance animation —
+    // this matters most when it's the same number as before
+    setTimeout(()=>{ if(session) updateLitButton(true); }, 900);
   } else {
     updateLitButton();
   }
@@ -1081,7 +1152,6 @@ function finishSession(elapsedSec){
     id: 'S' + Date.now(),
     date: new Date().toISOString(),
     category: session.cfg.category,
-    otherLabel: session.cfg.otherLabel,
     weighted: session.cfg.weighted,
     weight: session.cfg.weight,
     buttonCount: session.cfg.buttonCount,
@@ -1096,7 +1166,7 @@ function finishSession(elapsedSec){
   saveData();
 
   document.getElementById('complete-cat').textContent = fullLabel(session.cfg);
-  document.getElementById('complete-time').textContent = fmtTime2(totalTime);
+  setTabularText(document.getElementById('complete-time'), fmtTime2(totalTime));
   document.getElementById('complete-pr-badge').style.display = isPR ? '' : 'none';
   showScreen('screen-complete');
   session = null;
@@ -1308,7 +1378,6 @@ document.querySelectorAll('#pe-interval .seg-btn').forEach(b=>{
 });
 function fmtRange(startSec, endSec){
   function f(s){
-    if(s < 60) return s + ' sec';
     const m = Math.floor(s/60);
     const rem = s % 60;
     return m + ':' + String(rem).padStart(2,'0');
