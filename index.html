@@ -1301,8 +1301,11 @@ function buildSegments(){
   const base = Math.floor(100 / n);
   const remainder = 100 - base * n;
   const segs = [];
+  // spread the extra reps evenly across the whole session (e.g. 4,3,4,3...)
+  // instead of clustering them all at the front (e.g. 4,4,4...3,3,3)
   for(let i=0; i<n; i++){
-    segs.push({ reps: base + (i < remainder ? 1 : 0) });
+    const extra = Math.ceil(((i+1)*remainder)/n) - Math.ceil((i*remainder)/n);
+    segs.push({ reps: base + extra });
   }
   peDraft.segments = segs;
 }
