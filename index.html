@@ -1299,15 +1299,21 @@ function buildSegments(){
   const totalSeconds = peDraft.lengthMin * 60;
   const n = Math.max(1, Math.round(totalSeconds / peDraft.intervalSec));
   const base = Math.floor(100 / n);
-  const remainder = 100 - base * n;
-  const segs = [];
-  // spread the extra reps evenly across the whole session (e.g. 4,3,4,3...)
-  // instead of clustering them all at the front (e.g. 4,4,4...3,3,3)
-  for(let i=0; i<n; i++){
-    const extra = Math.ceil(((i+1)*remainder)/n) - Math.ceil((i*remainder)/n);
-    segs.push({ reps: base + extra });
+  const remainder = 100 - base * n; // how many intervals need +1 rep (the "high" value)
+  const high = remainder;
+  const low = n - remainder;
+  const reps = [];
+  if(high >= low){
+    // more highs than lows: lead with the surplus of highs, then alternate high,low for the rest
+    for(let i=0; i<(high-low); i++) reps.push(base+1);
+    for(let i=0; i<low; i++){ reps.push(base+1); reps.push(base); }
+  } else {
+    // more lows than highs: still start with the harder rep count (high) — alternate
+    // high,low pairs first, then finish with the leftover lows at the end
+    for(let i=0; i<high; i++){ reps.push(base+1); reps.push(base); }
+    for(let i=0; i<(low-high); i++) reps.push(base);
   }
-  peDraft.segments = segs;
+  peDraft.segments = reps.map(r=>({ reps: r }));
 }
 
 function openPlanEditor(plan){
