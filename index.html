@@ -116,7 +116,11 @@
     display:flex; gap:8px; flex-wrap:wrap;
   }
   #ns-category, #pe-category{
-    display:grid; grid-template-columns:1fr 1fr;
+    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  }
+  #ns-category .seg-btn, #pe-category .seg-btn{
+    min-width:0; padding:12px 8px; font-size:12.5px; line-height:1.2;
+    display:flex; align-items:center; justify-content:center; min-height:44px;
   }
   .seg-btn{
     flex:1; min-width:80px;
@@ -377,6 +381,7 @@
     font-weight:600; font-size:13px; text-transform:uppercase; letter-spacing:0.03em; cursor:pointer;
   }
   .modal-btn.danger{ background:var(--iron); border-color:var(--iron); color:#100D0A; }
+  .modal-btn.affirm{ background:var(--brass); border-color:var(--brass); color:#100D0A; }
   .modal-btn.single{ flex:1; }
 </style>
 </head>
@@ -433,6 +438,8 @@
           <div class="seg-btn" data-cat="pushups">Push-ups</div>
           <div class="seg-btn" data-cat="burpees">Burpees</div>
           <div class="seg-btn" data-cat="squats">Squats</div>
+          <div class="seg-btn" data-cat="hangingkneeraise">Hanging Knee Raise</div>
+          <div class="seg-btn" data-cat="hanginglegraise">Hanging Leg Raise</div>
         </div>
         <div class="hint" id="ns-category-auto-hint" style="display:none;">Locked to your plan</div>
       </div>
@@ -550,6 +557,8 @@
           <div class="seg-btn" data-cat="pushups">Push-ups</div>
           <div class="seg-btn" data-cat="burpees">Burpees</div>
           <div class="seg-btn" data-cat="squats">Squats</div>
+          <div class="seg-btn" data-cat="hangingkneeraise">Hanging Knee Raise</div>
+          <div class="seg-btn" data-cat="hanginglegraise">Hanging Leg Raise</div>
         </div>
       </div>
       <div class="field">
@@ -619,7 +628,7 @@
 /* ============ DATA ============ */
 let data = { plans: [], sessions: [] };
 const STORAGE_KEY = 'flecciones-data';
-const CATEGORY_LABELS = { pullups:'Pull-ups', pushups:'Push-ups', burpees:'Burpees', squats:'Squats' };
+const CATEGORY_LABELS = { pullups:'Pull-ups', pushups:'Push-ups', burpees:'Burpees', squats:'Squats', hangingkneeraise:'Hanging Knee Raise', hanginglegraise:'Hanging Leg Raise' };
 
 async function loadData(){
   try{
@@ -679,7 +688,7 @@ function playGong(){
   const base = 196;
   [1,2.01,3.0,4.2].forEach((p,i)=>{
     const osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value = base*p;
-    const g = ctx.createGain(); const peak = 0.16/(i+1);
+    const g = ctx.createGain(); const peak = 0.34/(i+1);
     g.gain.setValueAtTime(0, t0);
     g.gain.linearRampToValueAtTime(peak, t0+0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t0+2.3);
@@ -703,7 +712,7 @@ function showConfirm(message, danger){
     cancelBtn.className = 'modal-btn';
     cancelBtn.textContent = 'Cancel';
     const okBtn = document.createElement('div');
-    okBtn.className = 'modal-btn' + (danger ? ' danger' : '');
+    okBtn.className = 'modal-btn' + (danger ? ' danger' : ' affirm');
     okBtn.textContent = 'Confirm';
     actions.appendChild(cancelBtn);
     actions.appendChild(okBtn);
@@ -720,7 +729,7 @@ function showAlert(message){
     const actions = document.getElementById('modal-actions');
     actions.innerHTML = '';
     const okBtn = document.createElement('div');
-    okBtn.className = 'modal-btn single';
+    okBtn.className = 'modal-btn single affirm';
     okBtn.textContent = 'OK';
     actions.appendChild(okBtn);
     function close(){ overlay.classList.remove('active'); resolve(); }
@@ -1139,6 +1148,8 @@ function onRepPress(v){
   }
 }
 
+let lastCompletedSession = null; // {isPR, planId} — used for the post-PR "adjust plan?" prompt
+
 function finishSession(elapsedSec){
   clearInterval(session.tickHandle);
   playFinish();
@@ -1165,6 +1176,8 @@ function finishSession(elapsedSec){
   data.sessions.push(log);
   saveData();
 
+  lastCompletedSession = { isPR, planId: session.plan ? session.plan.id : null };
+
   document.getElementById('complete-cat').textContent = fullLabel(session.cfg);
   setTabularText(document.getElementById('complete-time'), fmtTime2(totalTime));
   document.getElementById('complete-pr-badge').style.display = isPR ? '' : 'none';
@@ -1180,7 +1193,22 @@ document.getElementById('active-back-btn').addEventListener('click', async ()=>{
     showScreen('screen-home');
   }
 });
-document.getElementById('complete-home-btn').addEventListener('click', ()=> showScreen('screen-home'));
+document.getElementById('complete-home-btn').addEventListener('click', async ()=>{
+  const info = lastCompletedSession;
+  lastCompletedSession = null;
+  if(info && info.isPR && info.planId){
+    const plan = data.plans.find(p=>p.id === info.planId);
+    if(plan){
+      const adjust = await showConfirm('Do you want to adjust the plan?', true);
+      if(adjust){
+        openPlanEditor(plan);
+        return;
+      }
+    }
+  }
+  showScreen('screen-home');
+});
+
 
 /* ============ HIGHSCORES ============ */
 function bestTimeForKey(key){
